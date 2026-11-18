@@ -1,12 +1,5 @@
-import { Suspense } from "react";
 import Link from "next/link";
 import TodoList from "./components/TodoList";
-import { getAllTodos } from "./api/todos";
-
-async function TodoSection() {
-  const todos = await getAllTodos();
-  return <TodoList initialTodos={todos} />;
-}
 
 export default function Home() {
   return (
@@ -17,9 +10,7 @@ export default function Home() {
           About
         </Link>
       </div>
-      <Suspense fallback={<p className="text-zinc-500">Loading...</p>}>
-        <TodoSection />
-      </Suspense>
+      <TodoList />
     </main>
   );
 }

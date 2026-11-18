@@ -1,31 +1,58 @@
 "use client";
 
-import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Todo } from "../types";
-import { addTodo, deleteTodo, updateTodo } from "../api/todos";
+import { addTodo, clearDoneTodos, deleteTodo, getAllTodos, updateTodo } from "../api/todos";
+import { Button } from "@/components/ui/button";
 import TodoItem from "./TodoItem";
 import AddTaskDialog from "./AddTaskDialog";
 
-interface TodoListProps {
-  initialTodos: Todo[];
-}
+export default function TodoList() {
+  const queryClient = useQueryClient();
+  const { data: todos = [], isPending, isError } = useQuery({
+    queryKey: ["todos"],
+    queryFn: getAllTodos,
+  });
 
-export default function TodoList({ initialTodos }: TodoListProps) {
-  const [todos, setTodos] = useState<Todo[]>(initialTodos);
+  const addMutation = useMutation({
+    mutationFn: ({ title, dueDate }: { title: string; dueDate?: string }) =>
+      addTodo(title, dueDate),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["todos"] }),
+  });
 
   async function handleAdd(title: string, dueDate?: string) {
-    const saved = await addTodo(title, dueDate);
-    setTodos((current) => [...current, saved]);
+    await addMutation.mutateAsync({ title, dueDate });
   }
 
-  async function handleToggle(todo: Todo) {
-    const saved = await updateTodo(todo.id, { isDone: !todo.isDone });
-    setTodos((current) => current.map((t) => (t.id === saved.id ? saved : t)));
+  const toggleMutation = useMutation({
+    mutationFn: (todo: Todo) => updateTodo(todo.id, { isDone: !todo.isDone }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["todos"] }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteTodo(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["todos"] }),
+  });
+
+  const clearDoneMutation = useMutation({
+    mutationFn: clearDoneTodos,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["todos"] }),
+  });
+
+  function handleToggle(todo: Todo) {
+    toggleMutation.mutate(todo);
   }
 
-  async function handleDelete(id: string) {
-    await deleteTodo(id);
-    setTodos((current) => current.filter((t) => t.id !== id));
+  function handleDelete(id: string) {
+    deleteMutation.mutate(id);
+  }
+
+  if (isPending) {
+    return <p className="text-zinc-500">Loading tasks...</p>;
+  }
+
+  if (isError) {
+    return <p className="text-red-600">Could not load tasks. Is the server running?</p>;
   }
 
   return (
@@ -44,6 +71,16 @@ export default function TodoList({ initialTodos }: TodoListProps) {
           />
         ))}
       </ul>
+      {todos.some((todo) => todo.isDone) && (
+        <Button
+          variant="outline"
+          className="mt-4"
+          disabled={clearDoneMutation.isPending}
+          onClick={() => clearDoneMutation.mutate()}
+        >
+          Clear done
+        </Button>
+      )}
     </>
   );
 }

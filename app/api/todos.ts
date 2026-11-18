@@ -47,3 +47,12 @@ export async function deleteTodo(id: string): Promise<void> {
     throw new Error("Failed to delete to-do");
   }
 }
+
+export async function clearDoneTodos(): Promise<void> {
+  const res = await fetch(`${API_URL}?isDone=true`, { cache: "no-store" });
+  if (!res.ok) {
+    throw new Error("Failed to load done to-dos");
+  }
+  const doneTodos: Todo[] = await res.json();
+  await Promise.all(doneTodos.map((todo) => deleteTodo(todo.id)));
+}
