@@ -11,7 +11,12 @@ export async function getAllTodos(): Promise<Todo[]> {
 }
 
 export async function addTodo(title: string): Promise<Todo> {
-  const newTodo: Todo = { id: crypto.randomUUID(), title, isDone: false };
+  const newTodo: Todo = {
+    id: crypto.randomUUID(),
+    title,
+    isDone: false,
+    createdAt: new Date().toLocaleDateString("en-CA"), // "YYYY-MM-DD" in local time
+  };
   const res = await fetch(API_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
