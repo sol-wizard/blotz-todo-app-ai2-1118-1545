@@ -10,12 +10,13 @@ export async function getAllTodos(): Promise<Todo[]> {
   return res.json();
 }
 
-export async function addTodo(title: string): Promise<Todo> {
+export async function addTodo(title: string, dueDate?: string): Promise<Todo> {
   const newTodo: Todo = {
     id: crypto.randomUUID(),
     title,
     isDone: false,
     createdAt: new Date().toLocaleDateString("en-CA"), // "YYYY-MM-DD" in local time
+    ...(dueDate ? { dueDate } : {}),
   };
   const res = await fetch(API_URL, {
     method: "POST",

@@ -1,7 +1,10 @@
+import { Button } from "@/components/ui/button";
+
 interface TodoItemProps {
   title: string;
   isDone: boolean;
   createdAt: string;
+  dueDate?: string;
   onToggle: () => void;
   onDelete: () => void;
 }
@@ -10,24 +13,23 @@ export default function TodoItem({
   title,
   isDone,
   createdAt,
+  dueDate,
   onToggle,
   onDelete,
 }: TodoItemProps) {
   return (
     <li className="flex items-center gap-3 rounded-lg border border-zinc-200 bg-white px-4 py-3 shadow-sm">
-      <button onClick={onToggle} className="text-lg" aria-label="Mark as done">
+      <Button variant="ghost" size="icon" onClick={onToggle} aria-label="Mark as done">
         {isDone ? "✅" : "⬜"}
-      </button>
+      </Button>
       <span className={`flex-1 ${isDone ? "text-zinc-400 line-through" : "text-zinc-800"}`}>
         {title}
       </span>
+      {dueDate && <span className="text-xs text-amber-600">Due {dueDate}</span>}
       <span className="text-xs text-zinc-400">{createdAt}</span>
-      <button
-        onClick={onDelete}
-        className="rounded-md px-2 py-1 text-sm text-red-600 hover:bg-red-50"
-      >
+      <Button variant="destructive" size="sm" onClick={onDelete}>
         Delete
-      </button>
+      </Button>
     </li>
   );
 }
