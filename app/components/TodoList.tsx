@@ -1,20 +1,26 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Todo } from "../types";
 import { addTodo, deleteTodo, getAllTodos, updateTodo } from "../api/todos";
 import TodoItem from "./TodoItem";
 import AddTaskDialog from "./AddTaskDialog";
 
 export default function TodoList() {
+  const queryClient = useQueryClient();
   const { data: todos = [], isPending, isError, refetch } = useQuery({
     queryKey: ["todos"],
     queryFn: getAllTodos,
   });
 
+  const addMutation = useMutation({
+    mutationFn: ({ title, dueDate }: { title: string; dueDate?: string }) =>
+      addTodo(title, dueDate),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["todos"] }),
+  });
+
   async function handleAdd(title: string, dueDate?: string) {
-    await addTodo(title, dueDate);
-    await refetch();
+    await addMutation.mutateAsync({ title, dueDate });
   }
 
   async function handleToggle(todo: Todo) {
