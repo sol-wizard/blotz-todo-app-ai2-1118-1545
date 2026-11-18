@@ -7,7 +7,7 @@ import TodoItem from "./TodoItem";
 import AddTaskDialog from "./AddTaskDialog";
 
 export default function TodoList() {
-  const { data: todos = [], refetch } = useQuery({
+  const { data: todos = [], isPending, isError, refetch } = useQuery({
     queryKey: ["todos"],
     queryFn: getAllTodos,
   });
@@ -25,6 +25,14 @@ export default function TodoList() {
   async function handleDelete(id: string) {
     await deleteTodo(id);
     await refetch();
+  }
+
+  if (isPending) {
+    return <p className="text-zinc-500">Loading tasks...</p>;
+  }
+
+  if (isError) {
+    return <p className="text-red-600">Could not load tasks. Is the server running?</p>;
   }
 
   return (
