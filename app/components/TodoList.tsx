@@ -2,7 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Todo } from "../types";
-import { addTodo, deleteTodo, getAllTodos, updateTodo } from "../api/todos";
+import { addTodo, clearDoneTodos, deleteTodo, getAllTodos, updateTodo } from "../api/todos";
+import { Button } from "@/components/ui/button";
 import TodoItem from "./TodoItem";
 import AddTaskDialog from "./AddTaskDialog";
 
@@ -30,6 +31,11 @@ export default function TodoList() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteTodo(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["todos"] }),
+  });
+
+  const clearDoneMutation = useMutation({
+    mutationFn: clearDoneTodos,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["todos"] }),
   });
 
@@ -65,6 +71,16 @@ export default function TodoList() {
           />
         ))}
       </ul>
+      {todos.some((todo) => todo.isDone) && (
+        <Button
+          variant="outline"
+          className="mt-4"
+          disabled={clearDoneMutation.isPending}
+          onClick={() => clearDoneMutation.mutate()}
+        >
+          Clear done
+        </Button>
+      )}
     </>
   );
 }
