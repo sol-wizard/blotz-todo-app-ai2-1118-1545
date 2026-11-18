@@ -8,7 +8,7 @@ import AddTaskDialog from "./AddTaskDialog";
 
 export default function TodoList() {
   const queryClient = useQueryClient();
-  const { data: todos = [], isPending, isError, refetch } = useQuery({
+  const { data: todos = [], isPending, isError } = useQuery({
     queryKey: ["todos"],
     queryFn: getAllTodos,
   });
@@ -23,14 +23,22 @@ export default function TodoList() {
     await addMutation.mutateAsync({ title, dueDate });
   }
 
-  async function handleToggle(todo: Todo) {
-    await updateTodo(todo.id, { isDone: !todo.isDone });
-    await refetch();
+  const toggleMutation = useMutation({
+    mutationFn: (todo: Todo) => updateTodo(todo.id, { isDone: !todo.isDone }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["todos"] }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteTodo(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["todos"] }),
+  });
+
+  function handleToggle(todo: Todo) {
+    toggleMutation.mutate(todo);
   }
 
-  async function handleDelete(id: string) {
-    await deleteTodo(id);
-    await refetch();
+  function handleDelete(id: string) {
+    deleteMutation.mutate(id);
   }
 
   if (isPending) {
