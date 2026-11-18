@@ -28,9 +28,16 @@ export default function AddTaskDialog({ onAdd }: AddTaskDialogProps) {
     defaultValues: { title: "" },
   });
 
+  // Only runs when the form passed the schema check.
   async function onSubmit(values: TaskFormValues) {
-    await onAdd(values.title);
-    setIsOpen(false);
+    try {
+      await onAdd(values.title);
+      form.reset();
+      setIsOpen(false);
+    } catch {
+      // Keep the dialog open and the text in it, so the user can try again.
+      form.setError("root", { message: "Could not save the task. Please try again." });
+    }
   }
 
   return (
@@ -58,6 +65,11 @@ export default function AddTaskDialog({ onAdd }: AddTaskDialogProps) {
               </Field>
             )}
           />
+          {form.formState.errors.root && (
+            <p role="alert" className="text-sm text-destructive">
+              {form.formState.errors.root.message}
+            </p>
+          )}
           <DialogFooter>
             <DialogClose render={<Button type="button" variant="outline" />}>
               Cancel
